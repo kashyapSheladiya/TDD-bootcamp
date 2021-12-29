@@ -36,4 +36,16 @@ RSpec.describe Article, type: :model do
       expect(article2.errors[:slug]).to include "has already been taken"
     end
   end
+
+  describe '.recent' do
+    it 'should return article in proper order' do
+      older_article = create(:article, created_at: 1.hour.ago)
+      newer_article = create(:article)
+
+      expect(described_class.recent).to eq([newer_article, older_article])
+
+      newer_article.update_column(:created_at, 2.hours.ago )
+      expect(described_class.recent).to eq([older_article, newer_article])
+    end
+  end
 end
