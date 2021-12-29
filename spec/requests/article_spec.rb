@@ -31,5 +31,30 @@ RSpec.describe ArticlesController do
       ids = json_data.map { |item| item[:id].to_i }
       expect(ids).to eq([newer_article.id, older_article.id])
     end
+
+    it 'paginates result' do
+      article1, article2, article3 = create_list(:article, 3)
+      get '/articles', params: { page: { number: 3, size: 1} }
+      expect(json_data.length).to eq(1)
+      expect(json_data.first[:id]).to eq(article1.id.to_s)
+    end
+
+    it 'contains pagination link in the response' do
+      article1, article2, article3 = create_list(:article, 3)
+      get '/articles', params: { page: { number: 2, size: 1} }
+      
+      expect(json[:links].length).to eq(5)
+      expect(json[:links].keys).to contain_exactly(:first, :prev, :next, :last, :self)
+
+      get '/articles', params: { page: { number: 3, size: 1} }
+      expect(json[:links].length).to eq(3)
+      expect(json[:links].keys).to contain_exactly(:first, :prev, :self)
+
+      get '/articles', params: { page: { number: 1, size: 1} }
+      expect(json[:links].length).to eq(3)
+      expect(json[:links].keys).to contain_exactly(:next, :last, :self)
+    end
+
+
   end
 end
